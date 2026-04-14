@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1024, height=768">
+    <title>Waterway - Title Screen</title>
+    <style>
+        :root {
+            --bg-deep: #050a0f;
+            --accent-blue: #00d2ff;
+            --accent-white: #e0f7fa;
+            --ui-bg: rgba(10, 25, 47, 0.85);
+            --ui-border: rgba(0, 210, 255, 0.3);
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-deep);
+            font-family: var(--font-main);
+            color: var(--accent-white);
+        }
+
+        /* Title Screen UI */
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+        }
+
+        #bg-image, #bg-canvas-fallback {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            z-index: 1;
+        }
+
+        #bg-canvas-fallback {
+            display: none; /* Hidden by default */
+        }
+
+        .ui-container {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .title-group {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 82px;
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            color: var(--accent-blue);
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            letter-spacing: 4px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            max-width: 500px;
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .button-group {
+            background: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            padding: 30px;
+            border-radius: 4px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--ui-border);
+            color: var(--accent-white);
+            padding: 12px 20px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-blue);
+            color: var(--bg-deep);
+            border-color: var(--accent-blue);
+        }
+
+        .btn-play {
+            background: var(--accent-blue);
+            color: var(--bg-deep);
+            font-weight: bold;
+            border-color: var(--accent-blue);
+        }
+
+        .btn-disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .btn-google {
+            margin-top: 10px;
+            border-color: #4285F4;
+            color: #4285F4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .footer-info {
+            position: absolute;
+            bottom: 20px;
+            font-size: 10px;
+            opacity: 0.4;
+            letter-spacing: 1px;
+        }
+
+        /* Game Canvas Container */
+        #game-container {
+            display: none; /* Hidden by default */
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas#game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TITLE SCREEN -->
+    <div id="title-screen">
+        <!-- Background Image Attempt -->
+        <img id="bg-image" src="https://waterway.checkers.page/background.png" alt="Background">
+        <!-- Fallback Canvas -->
+        <canvas id="bg-canvas-fallback"></canvas>
+
+        <div class="ui-container">
+            <div class="title-group">
+                <h1>WATERWAY</h1>
+                <p class="subtitle">A semi-3D top-down soccer game featuring water droplets and an ice ball.</p>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-play" id="btn-play">Play</button>
+                <button class="btn-secondary">Local Play</button>
+                <button class="btn-disabled" disabled>Online Play (Locked)</button>
+                <button class="btn-secondary">Settings</button>
+                <button class="btn-google">
+                    <svg style="width:20px;height:20px" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    Sign in with Google
+                </button>
+            </div>
+            
+            <div class="footer-info">
+                BUILD v0.1.0-ALPHA | PHYSICS: CIRCULAR COLLISION | REFILL STATIONS: ACTIVE
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME CANVAS -->
+    <div id="game-container">
+        <button class="btn-back" id="btn-back">← Back to Title</button>
+        <canvas id="game-canvas" width="1024" height="768"></canvas>
+    </div>
+
+    <!-- FOUNDATIONAL JAVASCRIPT STRUCTURE -->
+    <script>
+        // ============================================================================
+        // 1. UI & BACKGROUND LOGIC
+        // ============================================================================
+        
+        const titleScreen = document.getElementById('title-screen');
+        const gameContainer = document.getElementById('game-container');
+        const btnPlay = document.getElementById('btn-play');
+        const btnBack = document.getElementById('btn-back');
+        const bgImage = document.getElementById('bg-image');
+        const bgCanvasFallback = document.getElementById('bg-canvas-fallback');
+
+        // Background Image Fallback Logic
+        bgImage.onerror = () => {
+            console.warn("Failed to fetch background image. Drawing random colored box fallback.");
+            bgImage.style.display = 'none';
+            bgCanvasFallback.style.display = 'block';
+            
+            // Generate random color
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            
+            // Draw on fallback canvas
+            bgCanvasFallback.width = window.innerWidth;
+            bgCanvasFallback.height = window.innerHeight;
+            const ctx = bgCanvasFallback.getContext('2d');
+            ctx.fillStyle = randomColor;
+            ctx.fillRect(0, 0, bgCanvasFallback.width, bgCanvasFallback.height);
+        };
+
+        // Screen Transitions
+        btnPlay.addEventListener('click', () => {
+            titleScreen.style.display = 'none';
+            gameContainer.style.display = 'flex';
+            startGameLoop();
+        });
+
+        btnBack.addEventListener('click', () => {
+            gameContainer.style.display = 'none';
+            titleScreen.style.display = 'flex';
+            stopGameLoop();
+        });
+
+        // ============================================================================
+        // 2. CORE OOP CLASSES (Empty Definitions for Next Steps)
+        // ============================================================================
+
+        class GameStateManager {
+            constructor() {
+                this.state = 'TITLE'; // TITLE, PLAYING, HUB, etc.
+            }
+            update(deltaTime) {
+                // Handle state transitions and overarching logic
+            }
+            draw(ctx) {
+                // Render based on state
+            }
+        }
+
+        class Player {
+            constructor() {
+                // Position, velocity, mass (water level), temperature state (ice, water, steam)
+            }
+            update(deltaTime, environment) {
+                // Handle evaporation based on speed and environment.temperature
+            }
+            draw(ctx) {
+                // Draw droplet/ice/steam
+            }
+        }
+
+        class Ball {
+            constructor() {
+                // Position, velocity, mass (size)
+            }
+            update(deltaTime, environment) {
+                // Handle shrinking (melting) over time/temperature
+                // Handle respawn if melted
+            }
+            draw(ctx) {
+                // Draw ice ball
+            }
+        }
+
+        class Environment {
+            constructor() {
+                // Planet type, temperature, time of day, weather
+            }
+            update(deltaTime) {
+                // Update day/night cycle, weather patterns
+            }
+            drawBackground(ctx) {
+                // Render environment background
+            }
+        }
+
+        // ============================================================================
+        // 3. STORY DIALOGUE OBJECT
+        // ============================================================================
+
+        const StoryDialogue = {
+            hubGuide: {
+                greeting: "Welcome to the Gateway Hub, little drop. Don't evaporate out there!",
+                shopIntro: "Need a Thermos Flask? It'll keep you cool in the Heatwaves."
+            },
+            tutorial: {
+                step1: "Use WASD to move. Careful, moving fast makes you evaporate!",
+                step2: "Kick the ice ball into the goal. It shrinks as it melts, so be quick!"
+            }
+        };
+
+        // ============================================================================
+        // 4. STORAGE LOGIC FRAMEWORK
+        // ============================================================================
+
+        const StorageManager = {
+            saveGame: function(data) {
+                try {
+                    // 1. Local Save
+                    localStorage.setItem('waterway_save', JSON.stringify(data));
+                    console.log('Game saved locally.');
+
+                    // 2. Firebase Save (Placeholder)
+                    /*
+                    // PASTE FIREBASE CODE HERE LATER
+                    import { doc, setDoc } from "firebase/firestore"; 
+                    import { db, auth } from "./firebase";
+
+                    if (auth.currentUser) {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        await setDoc(userRef, data, { merge: true });
+                    }
+                    */
+                } catch (error) {
+                    console.error('Failed to save game:', error);
+                }
+            },
+
+            loadGame: function() {
+                try {
+                    // 1. Firebase Load (Placeholder)
+                    /*
+                    // PASTE FIREBASE CODE HERE LATER
+                    import { doc, getDoc } from "firebase/firestore";
+                    import { db, auth } from "./firebase";
+
+                    if (auth.currentUser) {
+                        const userRef = doc(db, "users", auth.currentUser.uid);
+                        const docSnap = await getDoc(userRef);
+                        if (docSnap.exists()) return docSnap.data();
+                    }
+                    */
+
+                    // 2. Local Load Fallback
+                    const saved = localStorage.getItem('waterway_save');
+                    return saved ? JSON.parse(saved) : null;
+                } catch (error) {
+                    console.error('Failed to load game:', error);
+                    return null;
+                }
+            }
+        };
+
+        // ============================================================================
+        // 5. GAME LOOP LOGIC
+        // ============================================================================
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+        let lastTime = 0;
+
+        // Instantiate core managers
+        const gameManager = new GameStateManager();
+
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // --- GAME LOGIC GOES HERE ---
+            // gameManager.update(deltaTime);
+            // gameManager.draw(ctx);
+
+            // Placeholder text to show it's running
+            ctx.fillStyle = 'white';
+            ctx.font = '24px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Canvas Active', canvas.width / 2, canvas.height / 2);
+            ctx.fillText('Game Loop Running via requestAnimationFrame', canvas.width / 2, canvas.height / 2 + 40);
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGameLoop() {
+            lastTime = performance.now();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function stopGameLoop() {
+            cancelAnimationFrame(animationFrameId);
+        }
+
+    </script>
+</body>
+</html>
