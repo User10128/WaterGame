@@ -1,0 +1,6 @@
+{
+  "name": "Waterway",
+  "description": "A semi-3D top-down soccer game featuring water droplets and an ice ball.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
